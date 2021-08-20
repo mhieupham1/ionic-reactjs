@@ -1,0 +1,8 @@
+{
+  "name": "ScuIonic",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react",
+  "id": "81c4b4b9"
+}
