@@ -710,6 +710,14 @@ class SketchField extends PureComponent {
         });
     }
 
+    getCanvasValue = (data) => {
+        let canvas = this._fc;
+        if(data) {
+            canvas.loadFromJSON(data);
+            this._loadingCanvas();
+        }
+    }
+
     componentDidMount = () => {
         let {tool, value, undoSteps, defaultValue, backgroundColor} = this.props;
 

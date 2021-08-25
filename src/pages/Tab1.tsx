@@ -5,16 +5,13 @@ import SketchField from '../components/react-sketch/components/SketchField';
 import Tools from '../components/react-sketch/tools';
 import DropZone from 'react-dropzone';
 import axios from 'axios';
+import main from './../presentation/main'
 
 import './Tab1.css';
 
-// declare global {
-//   interface fabric {
-//     interface Canvas {
-//       _onTouchStart(options?: any, callback?: Function): any;
-//     }
-//   }
-// }
+declare const navigator: any;
+declare const PresentationRequest:any;
+
 
 class SketchFieldDemo extends React.Component<any, any> {
     private _sketch: any;
@@ -68,13 +65,30 @@ class SketchFieldDemo extends React.Component<any, any> {
         menuPositionY: 0,
         menuFontSize: 0,
         menuFontColor: '',
-        displayMenuSelected: 'none'
+        displayMenuSelected: 'none',
+          // _presentation : {
+          //     request: window.PresentationRequest ? new PresentationRequest('/board_preview') : null,
+          //     connection: null
+          // }
       }
     }
 
     componentDidMount = () => {
       this._sketch.enableTouchScroll();
       this._sketch.getDatabase();
+      // request.getAvailability().then(function(availability) {
+      //   // availability.value may be kept up-to-date by the controlling UA as long
+      //   // as the availability object is alive. It is advised for the Web developers
+      //   // to discard the object as soon as it's not needed.
+      //   handleAvailabilityChange(availability.value);
+      //   availability.onchange = function() { handleAvailabilityChange(this.value); };
+      // }).catch(function() {
+      //   // Availability monitoring is not supported by the platform, so discovery of
+      //   // presentation displays will happen only after request.start() is called.
+      //   // Pretend the devices are available for simplicity; or, one could implement
+      //   // a third state for the button.
+      //   handleAvailabilityChange(true);
+      // });
       // this._sketch._loadingCanvas();
       // this._sketch2._loadingCanvas();
 
@@ -322,11 +336,13 @@ class SketchFieldDemo extends React.Component<any, any> {
                                              }}
                                              showMenu={this.showMenu.bind(this)}
                                              hideMenu={this.hideMenu.bind(this)}
-                                    // onChange={(c: any) => {
-                                    //   const data = this._sketch._fc._objects;
-                                    //   this._sketch2._fc._objects = this._sketch._fc._objects
-                                    //   this._sketch.saveDatabase();
-                                    // }}
+                                            onChange={(c: any) => {
+                                              // const data = this._sketch._fc._objects;
+                                              // this._sketch2._fc._objects = this._sketch._fc._objects
+                                              // this._sketch.saveDatabase();
+                                              // main._presentation.connection.send('change')
+                                                main.changeImage(JSON.stringify(this._sketch._fc));
+                                            }}
 
                                 />
                                 <div className="border" style={{ position: 'absolute', top: menuPositionY + 10, left: menuPositionX, display: displayMenuSelected }}>
@@ -360,6 +376,25 @@ class SketchFieldDemo extends React.Component<any, any> {
                             </div>
                             <div>
                                 <div className="border-bottom">
+                                    <a href="#" onClick={(e) => {
+                                      e.preventDefault();
+                                      main.connectDisplay();
+                                    }
+                                    }
+                                       className="btn btn-primary"
+                                    >Show slide</a>
+
+                                    <a href="#" onClick={(e) => {
+                                      e.preventDefault();
+                                      main.changeImage();
+                                    }
+                                    } className="btn btn-primary">Change Image</a>
+                                    <a href="#" onClick={(e) => {
+                                      e.preventDefault();
+                                      main.disconnectDisplay();
+                                    }
+                                    } className="btn btn-primary">Disconnect</a>
+
                                     <div className='form-group'>
                                         <label htmlFor="">Tool</label>
                                         <select
@@ -404,6 +439,7 @@ class SketchFieldDemo extends React.Component<any, any> {
                                             <a href="!" onClick={(e) => {
                                               e.preventDefault();
                                               this._sketch.zoom(0.8)
+                                                console.log(this._sketch)
                                             }} className="btn btn-primary"><i
                                                 className="fas fa-search-minus"></i></a>
                                         </div>
