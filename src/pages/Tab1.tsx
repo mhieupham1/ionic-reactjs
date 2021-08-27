@@ -426,7 +426,7 @@ class SketchFieldDemo extends React.Component<any, any> {
         const dragHandlers = {onStart: this.onStart, onStop: this.onStop};
 
         const listDataGridDiv = listDataGrid.map((data: any, id: any) => (
-            <Draggable key={data.id} {...dragHandlers}>
+            <Draggable key={data.id} cancel="strong" {...dragHandlers}>
 
                 <div style={{
                     position: 'absolute',
@@ -435,6 +435,7 @@ class SketchFieldDemo extends React.Component<any, any> {
                     display: 'block',
                     zIndex: 2
                 }} className={"sheet-container"}>
+                    <strong className="no-cursor">
                     <ReactDataSheet
                         data={data.data}
                         valueRenderer={(cell: any, i: any, j: any) => j == 2 ? cell.value : cell.value}
@@ -447,6 +448,7 @@ class SketchFieldDemo extends React.Component<any, any> {
                             this.updateTableGrid(data.id, grid);
                         }}
                     />
+                    </strong>
                 </div>
             </Draggable>
 
