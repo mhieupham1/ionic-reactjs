@@ -20,49 +20,6 @@ class BoardPreview extends React.Component<any, any> {
     }
 
     componentDidMount = () => {
-        // this._sketch.enableTouchScroll();
-        // this._sketch.getDatabase();
-
-        // request.getAvailability().then(function(availability) {
-        //   // availability.value may be kept up-to-date by the controlling UA as long
-        //   // as the availability object is alive. It is advised for the Web developers
-        //   // to discard the object as soon as it's not needed.
-        //   handleAvailabilityChange(availability.value);
-        //   availability.onchange = function() { handleAvailabilityChange(this.value); };
-        // }).catch(function() {
-        //   // Availability monitoring is not supported by the platform, so discovery of
-        //   // presentation displays will happen only after request.start() is called.
-        //   // Pretend the devices are available for simplicity; or, one could implement
-        //   // a third state for the button.
-        //   handleAvailabilityChange(true);
-        // });
-        // this._sketch._loadingCanvas();
-        // this._sketch2._loadingCanvas();
-
-        // (function(){
-        // let fabric = window.fabric
-        // var defaultOnTouchStartHandler = fabric.Canvas2.prototype._onTouchStart;
-        // fabric.util.object.extend(fabric.Canvas.prototype, {
-        //   _onTouchStart: function(e) {
-        //     var target = this.findTarget(e);
-        //     // if allowTouchScrolling is enabled, no object was at the
-        //     // the touch position and we're not in drawing mode, then
-        //     // let the event skip the fabricjs canvas and do default
-        //     // behavior
-        //     if (this.allowTouchScrolling && !target && !this.isDrawingMode) {
-        //       // returning here should allow the event to propagate and be handled
-        //       // normally by the browser
-        //       return;
-        //     }
-
-        //     // otherwise call the default behavior
-        //     defaultOnTouchStartHandler.call(this, e);
-        //   }
-        // });
-        // })();
-        // console.log(this.state.tool);
-        // this.handleChangeTool("Pencil");
-        // this.setState({lineWidth: 5});
         (function (console: any) {
             console.save = function (data: any, filename: any) {
                 if (!data) {

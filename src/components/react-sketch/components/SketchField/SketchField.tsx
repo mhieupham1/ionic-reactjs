@@ -808,7 +808,6 @@ class SketchField extends PureComponent {
         if (this.props.tool !== prevProps.tool) {
             this._selectedTool = this._tools[this.props.tool] || this._tools[Tool.Pencil]
         }
-        console.log(this._selectedTool);
 
         //Bring the cursor back to default if it is changed by a tool
         this._fc.defaultCursor = 'default';

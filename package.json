@@ -30,6 +30,7 @@
     "react": "^17.0.1",
     "react-datasheet": "^1.4.9",
     "react-dom": "^17.0.1",
+    "react-draggable": "^4.4.3",
     "react-dropzone": "7.0.1",
     "react-grid-layout": "^1.2.5",
     "react-pdf": "^5.3.2",
