@@ -16,7 +16,11 @@ import {uuid4} from "../components/react-sketch/utils";
 declare const navigator: any;
 declare const PresentationRequest: any;
 
-
+const fileVideo = 'https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_480_1_5MG.mp4'
+const urlFile = 'https://file-examples-com.github.io/uploads/2017/10/file-sample_150kB.pdf';
+const fileDoc = 'https://file-examples-com.github.io/uploads/2017/02/file-sample_100kB.doc'
+const fileXls = 'https://file-examples-com.github.io/uploads/2017/02/file_example_XLS_10.xls'
+const filePPT = 'https://file-examples-com.github.io/uploads/2017/08/file_example_PPT_250kB.ppt'
 class SketchFieldDemo extends React.Component<any, any> {
     private _sketch: any;
     private _sketch2: any;
@@ -436,7 +440,11 @@ class SketchFieldDemo extends React.Component<any, any> {
                     zIndex: 2
                 }} className={"sheet-container"}>
                     <strong className="no-cursor">
-                    <ReactDataSheet
+                        <iframe style={{width: '100%', height:'100%', backgroundColor:'grey'}}
+                              src={`http://docs.google.com/gview?url=${urlFile}&embedded=true`}></iframe>
+                        <video style={{width: '100%', height:'100%', backgroundColor:'grey'}}
+                                  controls
+                                  src={fileVideo}></video>            <ReactDataSheet
                         data={data.data}
                         valueRenderer={(cell: any, i: any, j: any) => j == 2 ? cell.value : cell.value}
                         dataRenderer={(cell: any, i: any, j: any) => j == 2 ? cell.value : cell.expr}
