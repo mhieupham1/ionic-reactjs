@@ -38,6 +38,8 @@ class Rectangle extends FabricCanvasTool {
       noScaleCache: false,
       angle: 0,
     });
+    this.rect.set('erasable', false);
+
     canvas.add(this.rect);
   }
 

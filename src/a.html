@@ -1,0 +1,15 @@
+<div>
+    <canvas id="canvas"></canvas>
+    <img src="my_image_canvas.png" id="my-image" >
+    <script>
+        var canvas = new fabric.Canvas('canvas');
+        var imgElement = document.getElementById('my-image');
+        var imgInstance = new fabric.Image(imgElement,{
+            left:100,
+            top:100,
+            angle:30
+        })
+        canvas.add(imgInstance);
+    </script>
+
+</div>

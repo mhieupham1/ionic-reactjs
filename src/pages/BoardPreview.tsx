@@ -113,7 +113,12 @@ class BoardPreview extends React.Component<any, any> {
                              console.log('a');
                          }}
             />
-
+            <video autoPlay loop controls width="640" height="480" style={{
+            display:'none'}
+            } id="video1">
+                <source id='mp4' src="http://media.w3.org/2010/05/sintel/trailer.mp4" type='video/mp4'/>
+                <p>Your user agent does not support the HTML5 Video element.</p>
+            </video>
         </div>
       );
     }

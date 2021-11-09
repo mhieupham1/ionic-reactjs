@@ -10,7 +10,7 @@ const tools = {
   Highlighter: "highlighter",
   DefaultTool: "default-tool",
   Erase:"erase",
-  Triangle:'triangle'
+  Triangle:'triangle',
 };
 
 export default tools;

@@ -21,6 +21,7 @@ const urlFile = 'https://file-examples-com.github.io/uploads/2017/10/file-sample
 const fileDoc = 'https://file-examples-com.github.io/uploads/2017/02/file-sample_100kB.doc'
 const fileXls = 'https://file-examples-com.github.io/uploads/2017/02/file_example_XLS_10.xls'
 const filePPT = 'https://file-examples-com.github.io/uploads/2017/08/file_example_PPT_250kB.ppt'
+
 class SketchFieldDemo extends React.Component<any, any> {
     private _sketch: any;
     private _sketch2: any;
@@ -86,12 +87,14 @@ class SketchFieldDemo extends React.Component<any, any> {
             deltaPosition: {
                 x: 0, y: 0
             },
+            videoURL:'http://media.w3.org/2010/05/sintel/trailer.mp4',
         }
     }
 
     componentDidMount = () => {
         this._sketch.enableTouchScroll();
         this._sketch.getDatabase();
+
         // request.getAvailability().then(function(availability) {
         //   // availability.value may be kept up-to-date by the controlling UA as long
         //   // as the availability object is alive. It is advised for the Web developers
@@ -260,6 +263,9 @@ class SketchFieldDemo extends React.Component<any, any> {
             case 'Pan':
                 tool = Tools.Pan
                 break;
+            case 'Highlighter':
+                tool = Tools.Highlighter
+                break;
             default:
                 tool = Tools.Pencil
         }
@@ -425,7 +431,7 @@ class SketchFieldDemo extends React.Component<any, any> {
             displayMenuSelected,
             tablePosition,
             listDataGrid,
-            gridData
+            gridData,videoURL
         } = this.state
         const dragHandlers = {onStart: this.onStart, onStop: this.onStop};
 
@@ -437,25 +443,14 @@ class SketchFieldDemo extends React.Component<any, any> {
                     top: data.positionY,
                     left: data.positionX,
                     display: 'block',
-                    zIndex: 2
+                    zIndex: 2,
+                    height: 400
                 }} className={"sheet-container"}>
                     <strong className="no-cursor">
-                        <iframe style={{width: '100%', height:'100%', backgroundColor:'grey'}}
-                              src={`http://docs.google.com/gview?url=${urlFile}&embedded=true`}></iframe>
-                        <video style={{width: '100%', height:'100%', backgroundColor:'grey'}}
-                                  controls
-                                  src={fileVideo}></video>            <ReactDataSheet
-                        data={data.data}
-                        valueRenderer={(cell: any, i: any, j: any) => j == 2 ? cell.value : cell.value}
-                        dataRenderer={(cell: any, i: any, j: any) => j == 2 ? cell.value : cell.expr}
-                        onCellsChanged={changes => {
-                            const grid = data.data.map((row: any) => [...row]);
-                            changes.forEach(({cell, row, col, value}) => {
-                                grid[row][col] = {...grid[row][col], value};
-                            });
-                            this.updateTableGrid(data.id, grid);
-                        }}
-                    />
+                        <iframe style={{width: '100%', height: '100%', backgroundColor: 'grey'}}
+                                src={`http://docs.google.com/gview?url=${urlFile}&embedded=true`}></iframe>
+
+
                     </strong>
                 </div>
             </Draggable>
@@ -492,13 +487,27 @@ class SketchFieldDemo extends React.Component<any, any> {
                                                  onChange={(c: any) => {
                                                      // const data = this._sketch._fc._objects;
                                                      // this._sketch2._fc._objects = this._sketch._fc._objects
-                                                     // this._sketch.saveDatabase();
+                                                     this._sketch.saveDatabase();
                                                      // main._presentation.connection.send('change')
                                                      main.changeImage(JSON.stringify(this._sketch._fc));
                                                  }}
                                     />
                                 </div>
-
+    <div>
+        <label htmlFor="">URL video</label>
+        <input type="text" className="form-control" value={videoURL}
+               onChange={(e: any) => {
+                   if (!(e.target.value === '' && e.target.value === 0)) {
+                       this.setState({
+                           videoURL: e.target.value
+                       });
+                   }
+               }
+               }/>
+        <button className={'btn btn-primary'} onClick={()=>{
+            this._sketch.addVideoWithTimeBar(videoURL);
+        }}>Add video</button>
+    </div>
 
                                 <div className="border" style={{
                                     position: 'absolute',
@@ -548,7 +557,11 @@ class SketchFieldDemo extends React.Component<any, any> {
                                             this.createTableGrid()
                                         }} className="btn btn-primary">Add</a>
                                     </div>
-
+                                    <a href="#" onClick={(e) => {
+                                        e.preventDefault();
+                                        this._sketch.handleObjectToFront()
+                                    }
+                                    }>To front</a>
                                     <a href="#" onClick={(e) => {
                                         e.preventDefault();
                                         main.connectDisplay();
@@ -578,6 +591,7 @@ class SketchFieldDemo extends React.Component<any, any> {
                                             <option value="Erase">Erase</option>
                                             <option value="Line">Line</option>
                                             <option value="Rectangle">Rectangle</option>
+                                            <option value="Highlighter">Highlighter</option>
                                             <option value="Triangle">Triangle</option>
                                             <option value="Circle">Circle</option>
                                             <option value="Select">Select</option>
@@ -802,10 +816,10 @@ class SketchFieldDemo extends React.Component<any, any> {
                                         to select image as background.
                                     </DropZone>
                                 </div>
-                                <a href="#" onClick={(e) => {
-                                    e.preventDefault();
-                                    this._sketch.addVideo();
-                                }}>Add video</a>
+                                {/*<a href="#" onClick={(e) => {*/}
+                                {/*    e.preventDefault();*/}
+                                {/*    this._sketch.addVideo();*/}
+                                {/*}}>Add video</a>*/}
                             </div>
                         </div>
                     </>

@@ -21,10 +21,13 @@ import Triangle from "./../../tools/Triangle"
 import {fabric} from "fabric";
 import axios from 'axios';
 
+import VolumeIcon from '../../../../icon/volume-up-solid 2.png';
+
 /**
  * Sketch Tool based on FabricJS for React Applications
  */
 class SketchField extends PureComponent {
+
     static propTypes = {
         // the color of the line
         lineColor: PropTypes.string,
@@ -83,7 +86,7 @@ class SketchField extends PureComponent {
         className: PropTypes.string,
         // Style options to pass to container div of canvas
         style: PropTypes.object,
-        backgroundColorText:PropTypes.string,
+        backgroundColorText: PropTypes.string,
         showMenu: PropTypes.func,
         hideMenu: PropTypes.func
     };
@@ -99,7 +102,7 @@ class SketchField extends PureComponent {
         widthCorrection: 0,
         heightCorrection: 0,
         forceValue: false,
-        backgroundColorText:"transparent",
+        backgroundColorText: "transparent",
         onObjectAdded: () => null,
         onObjectModified: () => null,
         onObjectRemoved: () => null,
@@ -177,27 +180,490 @@ class SketchField extends PureComponent {
                 left: opts.left,
                 top: opts.top,
             });
+            oImg.set('erasable', false);
             canvas.add(oImg);
-        }, { crossOrigin: 'Anonymous' });
+        }, {crossOrigin: 'Anonymous'});
     };
 
-    addVideo = () => {
-        let canvas = this._fc;
-        let video1El = document.getElementById('video1');
-        let video1 = new fabric.Image(video1El, {
-            left: 200,
-            top: 300,
-            angle: -15,
-            originX: 'center',
-            originY: 'center',
-            objectCaching: false,
-        });
-        canvas.add(video1);
-        video1.getElement().play();
-        fabric.util.requestAnimFrame(function render() {
-            canvas.renderAll();
-            fabric.util.requestAnimFrame(render);
-        });
+    getVideoElement = (url: string) => {
+        var videoListE = document.getElementById('videoRender');
+        var videoE = document.createElement('video');
+        var videoListECount = videoListE.childElementCount + 1;
+
+        videoE.setAttribute("id", "video" + videoListECount);
+        videoE.setAttribute("class", "videoCanvas");
+        videoE.muted = true;
+        var source = document.createElement('source');
+        source.src = url;
+        source.type = 'video/mp4';
+
+        videoE.addEventListener('loadedmetadata', function (e) {
+            videoE.width = this.videoWidth
+            videoE.height = this.videoHeight
+        }, false);
+        videoE.appendChild(source);
+        videoListE.appendChild(videoE);
+        return videoE;
+    }
+
+    addVideo = (url: string) => {
+        if (url) {
+            let canvas = this._fc;
+            var videoE = this.getVideoElement(url);
+
+            let video1 = new fabric.Image(videoE, {
+                left: 200,
+                top: 300,
+                angle: 0,
+                originX: 'center',
+                originY: 'center',
+                objectCaching: false,
+                objectType: 'video'
+            });
+            video1.set('video_src', url);
+
+            videoE.addEventListener('loadedmetadata', function (e) {
+                video1.set({
+                    width: this.videoWidth,
+                    height: this.videoHeight
+                })
+                canvas.add(video1);
+                video1.getElement().pause();
+                fabric.util.requestAnimFrame(function render() {
+                    canvas.renderAll();
+                    fabric.util.requestAnimFrame(render);
+                });
+            }, false);
+        }
+    }
+
+    addVideoWithTimeBar = (url: string, top: number, left: number, width: number, height: number) => {
+        if (url) {
+            const opts = {
+                subTargetCheck: true
+                , objectCaching: false
+                , selectable: true
+                , status: {paused: true}
+                , typeObject: 'videoGroup',
+                top: top ? top : 500,
+                left: left ? left : 300,
+                originX: 'center',
+                originY: 'center',
+                // width:500,
+                // height:500
+            };
+
+            // if (width && height) {
+            //     opts.width = width;
+            //     opts.height = height;
+            // }
+
+            const rad = 20, mainColor = '#ba2020';
+            let canvas = this._fc;
+            var videoE = this.getVideoElement(url);
+
+            let video1 = new fabric.Image(videoE, {
+                left: 200,
+                top: 200,
+                angle: 0,
+                originX: 'center',
+                originY: 'center',
+                objectCaching: false,
+                objectType: 'video'
+            });
+
+            video1.set('video_src', url);
+
+            videoE.addEventListener('loadedmetadata', function (e) {
+                video1.set({
+                    width: this.videoWidth,
+                    height: this.videoHeight
+                })
+                const group = new fabric.Group([video1], opts);
+                let paused = true;
+
+                let rad = 20;
+
+                //controll video display
+                const boxControlVideo = new fabric.Rect({
+                    // left:-227,
+                    // top:this.videoHeight - 40,
+                    left: group.left,
+                    top: group.top + this.videoHeight / 2 + 3,
+                    width: this.videoWidth,
+                    height: 60,
+                    fill: '#1a1a1a',
+                    propertiesName: 'controlVideo',
+                    originX: 'center',
+                    originY: 'center',
+                });
+
+                let trg = new fabric.Triangle({
+                    left: group.left + 2.7 * rad
+                    , top: group.top + group.height - 2.5 * rad
+                    , visible: paused
+                    , angle: 90
+                    , width: rad
+                    , height: rad
+                    , stroke: mainColor
+                    , fill: mainColor
+                });
+                let rectPause1 = new fabric.Rect({
+                    left: group.left + 1.6 * rad
+                    , top: group.top + group.height - 2.5 * rad
+                    , visible: !paused
+                    , width: rad / 3
+                    , height: rad
+                    , stroke: mainColor
+                    , fill: mainColor
+                });
+                let rectPause2 = new fabric.Rect({
+                    left: group.left + 2.1 * rad
+                    , top: group.top + group.height - 2.5 * rad
+                    , visible: !paused
+                    , width: rad / 3
+                    , height: rad
+                    , stroke: mainColor
+                    , fill: mainColor
+                });
+
+                let playButton = new fabric.Group([
+                        new fabric.Circle({
+                            left: group.left + rad
+                            , top: group.top + group.height - 3 * rad
+                            , radius: rad
+                            , stroke: mainColor
+                            , strokeWidth: 2
+                            , fill: null
+                        })
+                        , trg, rectPause1, rectPause2]
+                    , {
+                        objectCaching: false,
+                        originX: 'center',
+                        originY: 'center',
+                        left: group.left - this.videoWidth / 2 + 40,
+                        top: group.top + this.videoHeight / 2 + 3,
+                    });
+                // console.log(group.left,this.videoWidth);
+                //
+                // fabric.Image.fromURL('https://placehold.it/100x100', function(img) {
+                //     group.addWithUpdate(img);
+                //     group.setCoords();
+                //     canvas.setActiveObject(group);
+                //     canvas.renderAll();
+                // });
+
+                // let oImgFullScreen = new Image();
+                // oImgFullScreen.src = VolumeIcon;
+                // // oImgFullScreen.setAttribute('src', VolumeIcon);
+                //
+                // let rectButtonFullScreen = new fabric.Image(oImgFullScreen, {
+                //     left: group.left + this.videoWidth / 2 - 40,
+                //     top: group.top + this.videoHeight / 2 - 10
+                //     , visible: true
+                //     , stroke: mainColor
+                //     , fill: mainColor
+                //     , rx: 5
+                //     , ry: 5
+                // });
+
+                let rectButtonFullScreen = new fabric.Rect({
+                    left: group.left + this.videoWidth / 2 - 40,
+                    top: group.top + this.videoHeight / 2 - 10
+                    , visible: true
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    , width: 30
+                    , height: 30
+                });
+
+                let rectButtonVolume = new fabric.Rect({
+                    left: group.left - this.videoWidth / 2 + 70,
+                    top: group.top + this.videoHeight / 2 - 10
+                    , visible: true
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    , width: 25
+                    , height: 25
+                });
+
+                const progress = new fabric.Rect({
+                    left: group.left - this.videoWidth / 2 + 120,
+                    top: group.top + this.videoHeight / 2
+                    , visible: true
+                    , width: 0
+                    , height: rad / 2
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                });
+
+                const cProgress = new fabric.Rect({
+                    left: group.left - this.videoWidth / 2 + 120,
+                    top: group.top + this.videoHeight / 2
+                    , visible: true
+                    , width: this.videoWidth - 300
+                    , height: rad / 2
+                    , stroke: mainColor
+                    , fill: null
+                    , rx: 5
+                    , ry: 5
+                });
+
+                var timeShow = new fabric.Text('00:00', {
+                    left: group.left + this.videoWidth / 2 - 120,
+                    top: group.top + this.videoHeight / 2 - 5
+                    , visible: true
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    , fontSize: 16
+                });
+
+                const progressVolume = new fabric.Rect({
+                    left: group.left - this.videoWidth / 2 + 78,
+                    top: group.top + this.videoHeight / 2 - 10
+                    , visible: false
+                    , width: 0
+                    , height: 9
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                        ,angle:-90
+                });
+
+                const cProgressVolume = new fabric.Rect({
+                    left: group.left - this.videoWidth / 2 + 78,
+                    top: group.top + this.videoHeight / 2 - 10
+                    , visible: false
+                    , width: 100
+                    , height: 9
+                    , stroke: mainColor
+                    , fill: null
+                    , rx: 5
+                    , ry: 5
+                    ,angle:-90
+                });
+
+                group.addWithUpdate(boxControlVideo);
+                group.addWithUpdate(playButton);
+                group.addWithUpdate(rectButtonFullScreen);
+                group.addWithUpdate(rectButtonVolume);
+                group.addWithUpdate(progress);
+                group.addWithUpdate(cProgress);
+                group.addWithUpdate(timeShow);
+                group.addWithUpdate(progressVolume);
+                group.addWithUpdate(cProgressVolume);
+
+                const updateTimeText = () => {
+                    let totalSeconds = video1.getElement().currentTime;
+
+                    let hours = Math.floor(totalSeconds / 3600);
+                    totalSeconds %= 3600;
+                    let minutes = Math.floor(totalSeconds / 60);
+                    let seconds = totalSeconds % 60;
+
+                    let timeString = convertTimeVideo(hours) + ':' + convertTimeVideo(minutes) + ':' + convertTimeVideo(Math.floor(seconds))
+                    timeShow.set({
+                        text: timeString
+                    })
+                }
+
+                const convertTimeVideo = (time: any) => {
+                    return time < 10 ? '0' + time.toString() : time;
+                }
+
+                //action video
+
+                boxControlVideo.on({
+                    'mousemove': function (evt) {
+                        progressVolume.set({
+                            visible:false
+                        });
+
+                        cProgressVolume.set({
+                            visible:false
+                        });
+                    }
+                })
+
+                playButton.on({
+                    'mousedown': function (evt) {
+                        let elem = video1.getElement();
+                        if (elem.paused || elem.ended) {
+                            elem.play();
+                            trg.set({
+                                visible: false
+                            })
+                            rectPause1.set({
+                                visible: true
+                            })
+                            rectPause2.set({
+                                visible: true
+                            })
+                        } else {
+                            elem.pause();
+                            trg.set({
+                                visible: true
+                            })
+                            rectPause1.set({
+                                visible: false
+                            })
+                            rectPause2.set({
+                                visible: false
+                            })
+                        }
+                        canvas.requestRenderAll();
+                    }
+                });
+
+                rectButtonVolume.on({
+                    'mousedown': function (evt) {
+                        let element = video1.getElement();
+                        element.muted = !element.muted;
+                    },
+                    'mousemove': function (evt) {
+                        progressVolume.set({
+                            visible:true
+                        })
+                        cProgressVolume.set({
+                            visible:true
+                        })
+                    },
+                    'mouseout': function (evt) {
+
+                    }
+                })
+
+
+                cProgress.on({
+                    'mousedown': function (evt) {
+                        const _ptr = canvas.getPointer(evt.e, true) // _ptr is position click
+                            , ptr = canvas._normalizePointer(group, _ptr)
+                            , l = ptr.x + group.width /2 - 120 ;
+                        _sendStatus(group, group.status.paused, l * video1.getElement().duration / cProgress.width)
+                    }
+                });
+
+                cProgressVolume.on({
+                    'mousedown': function (evt) {
+                        const _ptr = canvas.getPointer(evt.e, true) // _ptr is position click
+                            , ptr = canvas._normalizePointer(group, _ptr)
+                            , l = ((ptr.y - 100) / 100).toFixed(1) ;
+                        _setVolume(group, l )
+                    },
+                    'mouseout': function (evt) {
+                        progressVolume.set({
+                            visible:false
+                        });
+
+                        cProgressVolume.set({
+                            visible:false
+                        });
+                    }
+                });
+
+                rectButtonFullScreen.on({
+                    'mousedown': function (evt) {
+                        let elem = video1.getElement();
+                        if (document.fullscreenEnabled) {
+                            elem.requestFullscreen();
+                        }
+                    }
+                });
+
+                const updateProgress = function () {
+                    // console.log(video1.getElement().currentTime);
+                    // console.log(video1.getElement().duration)
+                    // console.log(cProgress.width, 'processWidth');
+                    // console.log((video1.getElement().currentTime / video1.getElement().duration) * cProgress.width)
+
+                    progress.set('width', (video1.getElement().currentTime / video1.getElement().duration) * cProgress.width);
+                    if (video1.getElement().currentTime === video1.getElement().duration) {
+                        video1.getElement().pause();
+                        trg.set({
+                            visible: true
+                        })
+                        rectPause1.set({
+                            visible: false
+                        })
+                        rectPause2.set({
+                            visible: false
+                        })
+                    }
+                    canvas.requestRenderAll();
+                };
+
+                const updateVolume = function () {
+                    progressVolume.set('width', (video1.getElement().volume / 1) * cProgressVolume.width);
+                    canvas.requestRenderAll();
+                };
+
+                const updateControls = function () {
+                    canvas.requestRenderAll();
+                };
+
+
+                group.on({
+                    'mouseover': function () {
+                        canvas.requestRenderAll();
+                    }
+                    , 'mouseout': function () {
+                        canvas.requestRenderAll();
+                    }
+                });
+
+                group.videoStatus = function (_status) {
+                    group.status = _status;
+                    updateControls();
+                    video1.getElement().currentTime = group.status.pos;
+                    updateProgress();
+                }
+
+                group.videoSetVolumn = function (volume) {
+                    updateControls();
+                    video1.getElement().volume = 1 - volume;
+                    updateVolume();
+                }
+
+                canvas.add(group);
+                video1.getElement().pause();
+                fabric.util.requestAnimFrame(function render() {
+                    updateTimeText();
+                    updateProgress();
+                    updateVolume();
+                    canvas.renderAll();
+                    fabric.util.requestAnimFrame(render);
+                });
+            }, false);
+
+            function _sendStatus(g, _paused, _pos) {
+                console.log(g,_paused, _pos);
+                g.status.paused = _paused;
+                g.status.pos = _pos;
+                g.videoStatus(g.status);
+            }
+
+            function _setVolume(g, _volume) {
+                if (_volume) {
+                    console.log( parseFloat(_volume));
+                    g.videoSetVolumn(parseFloat(_volume));
+                }
+            }
+
+        }
+    }
+
+
+    renderVideoWithObject = (object: any) => {
+
     }
 
 
@@ -218,6 +684,9 @@ class SketchField extends PureComponent {
         let state = JSON.stringify(objState);
         // object, previous state, current state
         this._history.keep([obj, state, state]);
+        //need fix
+        // const canvas = this._fc;
+        // canvas.setActiveObject(obj);
         onObjectAdded(e);
     };
 
@@ -247,7 +716,6 @@ class SketchField extends PureComponent {
 
     _loadingCanvas = () => {
         const canvas = this._fc;
-        const objects = canvas.getObjects();
         canvas.renderAll();
         canvas.calcOffset();
         canvas.requestRenderAll();
@@ -642,7 +1110,7 @@ class SketchField extends PureComponent {
     };
 
     positionBtn = (obj) => {
-        fabric.Canvas.prototype.getAbsoluteCoords = function(object) {
+        fabric.Canvas.prototype.getAbsoluteCoords = function (object) {
             return {
                 left: object.left + this._offset.left,
                 top: object.top + this._offset.top
@@ -671,14 +1139,15 @@ class SketchField extends PureComponent {
             left: options.left,
             top: options.top,
         });
+        iText.set('erasable', false)
         canvas.add(iText);
     };
 
     updateText = (option) => {
         let canvas = this._fc;
         let activeObj = canvas.getActiveObject();
-        if(activeObj==undefined) {
-            return ;
+        if (activeObj == undefined) {
+            return;
         }
         activeObj.set(option)
         canvas.renderAll();
@@ -691,36 +1160,72 @@ class SketchField extends PureComponent {
     saveDatabase = () => {
         let canvas = this._fc;
         const dataJson = JSON.stringify(canvas);
-        axios.post('http://127.0.0.1:8000/canvas',{
-            data:dataJson,
-            userId:1
+        console.log(canvas);
+        axios.post('http://giupviec88.test/canvas', {
+            data: dataJson,
+            userId: 1
         })
             .then((response) => {
-                console.log(response);
+                // console.log(response);
             })
     }
 
     getDatabase = () => {
         let canvas = this._fc;
-        axios.get('http://127.0.0.1:8000/canvas?userId=1').then((response) => {
-            if(response.data.data_board) {
+        axios.get('http://giupviec88.test/canvas?userId=1').then((response) => {
+            if (response.data.data_board) {
+                console.log(response.data.data_board)
                 canvas.loadFromJSON(response.data.data_board);
-                this._loadingCanvas();
+                canvas.renderAll();
+                console.log(canvas);
+                return response.data.data_board;
             }
+        }).then(() => {
+            this.canvasLoaded();
         });
+    }
+
+    canvasLoaded = () => {
+        let canvas = this._fc;
+        var objs = canvas.getObjects();
+        for (var i = 0; i < objs.length; i++) {
+            if (objs[i].hasOwnProperty('typeObject') && objs[i].typeObject === 'videoGroup') {
+                let videoSrc, videoTop, videoLeft, videoWidth, videoHeight;
+                videoTop = objs[i].top;
+                videoLeft = objs[i].left;
+                videoWidth = objs[i].width;
+                videoHeight = objs[i].height;
+                for (var j = 0; j < objs[i].getObjects().length; j++) {
+                    var objectChild = objs[i].getObjects();
+                    if (objectChild[j].video_src) {
+                        videoSrc = objectChild[j]['video_src'];
+                    }
+                }
+                canvas.remove(objs[i]);
+                if (videoSrc) {
+                    this.addVideoWithTimeBar(videoSrc, videoTop, videoLeft, videoWidth, videoHeight);
+                }
+            }
+        }
+        canvas.renderAll();
     }
 
     getCanvasValue = (data) => {
         let canvas = this._fc;
-        if(data) {
+        if (data) {
             canvas.loadFromJSON(data);
             this._loadingCanvas();
         }
     }
+    handleObjectToFront = () => {
+        let canvas = this._fc;
+        let activeObj = canvas.getActiveObject();
+        canvas.bringToFront(activeObj);
+
+    }
 
     componentDidMount = () => {
         let {tool, value, undoSteps, defaultValue, backgroundColor} = this.props;
-
         let canvas = (this._fc = new fabric.Canvas(
             this._canvas /*, {
          preserveObjectStacking: false,
@@ -756,9 +1261,15 @@ class SketchField extends PureComponent {
         canvas.on("object:scaling", (e) => this.callEvent(e, this._onObjectScaling));
         canvas.on("object:rotating", (e) => this.callEvent(e, this._onObjectRotating));
 
-        canvas.on('selection:created',  (e) => {
+        canvas.on('object:selected', function (event) {
+            var object = event.target;
+            canvas.sendToBack(object);
+            //object.sendToBack();
+            console.log("Selected");
+        });
+        canvas.on('selection:created', (e) => {
             console.log(e.selected);
-            if(e.selected && e.selected.length == 1 && e.selected[0].__originalState && e.selected[0].__originalState.type && e.selected[0].__originalState.type == 'i-text') {
+            if (e.selected && e.selected.length == 1 && e.selected[0].__originalState && e.selected[0].__originalState.type && e.selected[0].__originalState.type == 'i-text') {
                 this.props.showMenu(e)
             } else {
                 this.props.hideMenu()
@@ -766,11 +1277,13 @@ class SketchField extends PureComponent {
         });
 
         canvas.on('selection:cleared', (e) => {
+            console.log(e.selected);
             this.props.hideMenu()
         });
 
         canvas.on('selection:updated', (e) => {
-            if(e.selected && e.selected.length == 1 && e.selected[0].__originalState && e.selected[0].__originalState.type && e.selected[0].__originalState.type == 'i-text') {
+            console.log(e.selected);
+            if (e.selected && e.selected.length == 1 && e.selected[0].__originalState && e.selected[0].__originalState.type && e.selected[0].__originalState.type == 'i-text') {
                 this.props.showMenu(e)
             } else {
                 this.props.hideMenu()
@@ -781,11 +1294,20 @@ class SketchField extends PureComponent {
         // canvas.on("touch:startdown", (e) => this.callEvent(e, this._onMouseDown));
         // canvas.on("touch:move", (e) => this.callEvent(e, this._onMouseMove));
         // canvas.on("touch:end", (e) => this.callEvent(e, this._onMouseUp));
-        // IText Events fired on Adding Text
+        // // IText Events fired on Adding Text
         // canvas.on("text:event:changed", console.log)
         // canvas.on("text:selection:changed", console.log)
         // canvas.on("text:editing:entered", console.log)
         // canvas.on("text:editing:exited", console.log)
+
+        fabric.Object.prototype.toObject = (function (toObject) {
+            return function (propertiesToInclude) {
+                propertiesToInclude = (propertiesToInclude || []).concat(
+                    ['video_src', 'typeObject']
+                );
+                return toObject.apply(this, [propertiesToInclude]);
+            };
+        })(fabric.Object.prototype.toObject);
 
         this.disableTouchScroll();
 
@@ -795,7 +1317,9 @@ class SketchField extends PureComponent {
         (value || defaultValue) && this.fromJSON(value || defaultValue);
     };
 
-    componentWillUnmount = () => window.removeEventListener("resize", this._resize);
+    componentWillUnmount = () => {
+        window.removeEventListener("resize", this._resize)
+    };
 
     componentDidUpdate = (prevProps, prevState) => {
         if (this.state.parentWidth !== prevState.parentWidth
@@ -831,22 +1355,27 @@ class SketchField extends PureComponent {
             height ? {height: height} : {height: 512}
         );
         return (
-            <div
-                className={className}
-                ref={(c) => (this._container = c)}
-                style={canvasDivStyle}
-            >
-                <div className="d-flex flex-columns">
-                    <div className="border">
-                        <canvas
-                            id={uuid4()}
-                            ref={(c) => {
-                                this._canvas = c
-                            }}>
-                            Sorry, Canvas HTML5 element is not supported by your browser
-                            :(
-                        </canvas>
+            <div>
+                <div
+                    className={className}
+                    ref={(c) => (this._container = c)}
+                    style={canvasDivStyle}
+                >
+                    <div className="d-flex flex-columns">
+                        <div className="border">
+                            <canvas
+                                id={uuid4()}
+                                ref={(c) => {
+                                    this._canvas = c
+                                }}>
+                                Sorry, Canvas HTML5 element is not supported by your browser
+                                :(
+                            </canvas>
+                        </div>
                     </div>
+                </div>
+                <div id={'videoRender'}>
+
                 </div>
             </div>
         );
