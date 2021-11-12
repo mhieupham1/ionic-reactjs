@@ -88,6 +88,7 @@ class SketchFieldDemo extends React.Component<any, any> {
                 x: 0, y: 0
             },
             videoURL:'http://media.w3.org/2010/05/sintel/trailer.mp4',
+            audioURL:'https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_700KB.mp3'
         }
     }
 
@@ -431,7 +432,7 @@ class SketchFieldDemo extends React.Component<any, any> {
             displayMenuSelected,
             tablePosition,
             listDataGrid,
-            gridData,videoURL
+            gridData,videoURL,audioURL
         } = this.state
         const dragHandlers = {onStart: this.onStart, onStop: this.onStop};
 
@@ -508,6 +509,22 @@ class SketchFieldDemo extends React.Component<any, any> {
             this._sketch.addVideoWithTimeBar(videoURL);
         }}>Add video</button>
     </div>
+
+                                <div>
+                                    <label htmlFor="">URL audio</label>
+                                    <input type="text" className="form-control" value={audioURL}
+                                           onChange={(e: any) => {
+                                               if (!(e.target.value === '' && e.target.value === 0)) {
+                                                   this.setState({
+                                                       audioURL: e.target.value
+                                                   });
+                                               }
+                                           }
+                                           }/>
+                                    <button className={'btn btn-primary'} onClick={()=>{
+                                        this._sketch.addAudio(audioURL);
+                                    }}>Add audio</button>
+                                </div>
 
                                 <div className="border" style={{
                                     position: 'absolute',

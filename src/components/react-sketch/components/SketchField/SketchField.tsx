@@ -206,20 +206,66 @@ class SketchField extends PureComponent {
         return videoE;
     }
 
-    addVideo = (url: string) => {
+    // addVideo = (url: string) => {
+    //     if (url) {
+    //         let canvas = this._fc;
+    //         var videoE = this.getVideoElement(url);
+    //
+    //         let video1 = new fabric.Image(videoE, {
+    //             left: 200,
+    //             top: 300,
+    //             angle: 0,
+    //             originX: 'center',
+    //             originY: 'center',
+    //             objectCaching: false,
+    //             objectType: 'video'
+    //         });
+    //         video1.set('video_src', url);
+    //
+    //         videoE.addEventListener('loadedmetadata', function (e) {
+    //             video1.set({
+    //                 width: this.videoWidth,
+    //                 height: this.videoHeight
+    //             })
+    //             canvas.add(video1);
+    //             video1.getElement().pause();
+    //             fabric.util.requestAnimFrame(function render() {
+    //                 canvas.renderAll();
+    //                 fabric.util.requestAnimFrame(render);
+    //             });
+    //         }, false);
+    //     }
+    // }
+
+    addVideo = (url: string, top: number, left: number, width: number, height: number) => {
         if (url) {
+            const opts = {
+                subTargetCheck: true
+                , objectCaching: false
+                , selectable: true
+                , status: { paused: true }
+                , typeObject: 'videoGroup',
+                top: top ? top : 300,
+                left: left ? left : 600,
+                originX: 'center',
+                originY: 'center',
+                erasable:false
+            };
+
+            const rad = 20, mainColor = '#ffffff';
             let canvas = this._fc;
             var videoE = this.getVideoElement(url);
 
             let video1 = new fabric.Image(videoE, {
                 left: 200,
-                top: 300,
+                top: 200,
                 angle: 0,
                 originX: 'center',
                 originY: 'center',
                 objectCaching: false,
                 objectType: 'video'
             });
+
             video1.set('video_src', url);
 
             videoE.addEventListener('loadedmetadata', function (e) {
@@ -227,13 +273,383 @@ class SketchField extends PureComponent {
                     width: this.videoWidth,
                     height: this.videoHeight
                 })
-                canvas.add(video1);
-                video1.getElement().pause();
+                const group = new fabric.Group([video1], opts);
+                let paused = true;
+
+                let rad = 20;
+
+                //controll video display
+                const boxControlVideo = new fabric.Rect({
+                    left: group.left,
+                    top: group.top + this.videoHeight / 2 + 3,
+                    width: this.videoWidth,
+                    height: 60,
+                    fill: '#1a1a1a',
+                    propertiesName: 'controlVideo',
+                    originX: 'center',
+                    originY: 'center',
+                });
+
+                let trg = new fabric.Triangle({
+                    left: group.left + 2.7 * rad
+                    , top: group.top + group.height - 2.5 * rad
+                    , visible: paused
+                    , angle: 90
+                    , width: rad
+                    , height: rad
+                    , stroke: mainColor
+                    , fill: mainColor
+                });
+                let rectPause1 = new fabric.Rect({
+                    left: group.left + 1.6 * rad
+                    , top: group.top + group.height - 2.5 * rad
+                    , visible: !paused
+                    , width: rad / 3
+                    , height: rad
+                    , stroke: mainColor
+                    , fill: mainColor
+                });
+                let rectPause2 = new fabric.Rect({
+                    left: group.left + 2.1 * rad
+                    , top: group.top + group.height - 2.5 * rad
+                    , visible: !paused
+                    , width: rad / 3
+                    , height: rad
+                    , stroke: mainColor
+                    , fill: mainColor
+                });
+
+                let playButton = new fabric.Group([
+                        new fabric.Circle({
+                            left: group.left + rad
+                            , top: group.top + group.height - 3 * rad
+                            , radius: rad
+                            , stroke: mainColor
+                            , strokeWidth: 2
+                            , fill: null
+                        })
+                        , trg, rectPause1, rectPause2]
+                    , {
+                        objectCaching: false,
+                        originX: 'center',
+                        originY: 'center',
+                        left: group.left - this.videoWidth / 2 + 40,
+                        top: group.top + this.videoHeight / 2 + 3,
+                    });
+
+                let rectButtonFullScreen = new fabric.Rect({
+                    left: group.left + this.videoWidth / 2 - 40,
+                    top: group.top + this.videoHeight / 2 - 10
+                    , visible: true
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    , width: 30
+                    , height: 30
+                });
+
+                let rectButtonVolume = new fabric.Rect({
+                    left: group.left - this.videoWidth / 2 + 70,
+                    top: group.top + this.videoHeight / 2 - 10
+                    , visible: true
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    , width: 25
+                    , height: 25
+                });
+
+                const progress = new fabric.Rect({
+                    left: group.left - this.videoWidth / 2 + 120,
+                    top: group.top + this.videoHeight / 2
+                    , visible: true
+                    , width: 0
+                    , height: rad / 2
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                });
+
+                const cProgress = new fabric.Rect({
+                    left: group.left - this.videoWidth / 2 + 120,
+                    top: group.top + this.videoHeight / 2
+                    , visible: true
+                    , width: this.videoWidth - 250
+                    , height: rad / 2
+                    , stroke: mainColor
+                    , fill: null
+                    , rx: 5
+                    , ry: 5
+                });
+
+                var timeShow = new fabric.Text('00:00', {
+                    left: group.left + this.videoWidth / 2 - 120,
+                    top: group.top + this.videoHeight / 2 - 5
+                    , visible: true
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    , fontSize: 16
+                });
+
+                const progressVolume = new fabric.Rect({
+                    left: group.left - this.videoWidth / 2 + 88,
+                    top: group.top + this.videoHeight / 2 - 10
+                    , visible: false
+                    , width: 9
+                    , height: 0
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    , angle: 180
+                });
+
+                const cProgressVolume = new fabric.Rect({
+                    left: group.left - this.videoWidth / 2 + 88,
+                    top: group.top + this.videoHeight / 2 - 10
+                    , visible: false
+                    , width: 9
+                    , height: 100
+                    , stroke: mainColor
+                    , fill: null
+                    , rx: 5
+                    , ry: 5
+                    , angle: 180
+                });
+
+                group.addWithUpdate(boxControlVideo);
+                group.addWithUpdate(playButton);
+                group.addWithUpdate(rectButtonFullScreen);
+                group.addWithUpdate(rectButtonVolume);
+                group.addWithUpdate(progress);
+                group.addWithUpdate(cProgress);
+                group.addWithUpdate(timeShow);
+                group.addWithUpdate(progressVolume);
+                group.addWithUpdate(cProgressVolume);
+
+                const updateTimeText = () => {
+                    let totalSeconds = video1.getElement().currentTime;
+
+                    let hours = Math.floor(totalSeconds / 3600);
+                    totalSeconds %= 3600;
+                    let minutes = Math.floor(totalSeconds / 60);
+                    let seconds = totalSeconds % 60;
+
+                    let timeString = convertTimeVideo(hours) + ':' + convertTimeVideo(minutes) + ':' + convertTimeVideo(Math.floor(seconds))
+                    timeShow.set({
+                        text: timeString
+                    })
+                }
+
+                const convertTimeVideo = (time: any) => {
+                    return time < 10 ? '0' + time.toString() : time;
+                }
+
+                //action video
+
+                boxControlVideo.on({
+                    'mousemove': function (evt) {
+                        progressVolume.set({
+                            visible: false
+                        });
+
+                        cProgressVolume.set({
+                            visible: false
+                        });
+                    }
+                })
+
+                playButton.on({
+                    'mousedown': function (evt) {
+                        let elem = video1.getElement();
+                        if (elem.paused || elem.ended) {
+                            elem.play();
+                            trg.set({
+                                visible: false
+                            })
+                            rectPause1.set({
+                                visible: true
+                            })
+                            rectPause2.set({
+                                visible: true
+                            })
+                        } else {
+                            elem.pause();
+                            trg.set({
+                                visible: true
+                            })
+                            rectPause1.set({
+                                visible: false
+                            })
+                            rectPause2.set({
+                                visible: false
+                            })
+                        }
+                        canvas.requestRenderAll();
+                    }
+                });
+
+                rectButtonVolume.on({
+                    'mousedown': function (evt) {
+                        let element = video1.getElement();
+                        element.muted = !element.muted;
+                    },
+                    'mousemove': function (evt) {
+                        progressVolume.set({
+                            visible: true
+                        })
+                        cProgressVolume.set({
+                            visible: true
+                        })
+                    },
+                    'mouseout': function (evt) {
+
+                    }
+                })
+
+
+                cProgress.on({
+                    'mousedown': function (evt) {
+                        const _ptr = canvas.getPointer(evt.e, true) // _ptr is position click
+                            , ptr = canvas._normalizePointer(group, _ptr)
+                            , l = ptr.x + group.width / 2 - 120;
+                        _sendStatus(group, group.status.paused, l * video1.getElement().duration / cProgress.width)
+                    }
+                });
+
+                cProgressVolume.on({
+                    'mousedown': function (evt) {
+                        const _ptr = canvas.getPointer(evt.e, true) // _ptr is position click
+                            , ptr = canvas._normalizePointer(group, _ptr)
+                            , l = Math.abs((ptr.y - (group.height - 100) / 2) / cProgressVolume.height).toFixed(1);
+
+                        _setVolume(group, parseFloat(l) + 0.1)
+                    },
+                    'mouseout': function (evt) {
+                        progressVolume.set({
+                            visible: false
+                        });
+
+                        cProgressVolume.set({
+                            visible: false
+                        });
+                    }
+                });
+
+                rectButtonFullScreen.on({
+                    'mousedown': function (evt) {
+                        let elem = video1.getElement();
+                        if (document.fullscreenEnabled) {
+                            elem.requestFullscreen();
+                        }
+                    }
+                });
+
+                const updateProgress = function () {
+                    progress.set('width', (video1.getElement().currentTime / video1.getElement().duration) * cProgress.width);
+                    if (video1.getElement().currentTime === video1.getElement().duration) {
+                        video1.getElement().pause();
+                        trg.set({
+                            visible: true
+                        })
+                        rectPause1.set({
+                            visible: false
+                        })
+                        rectPause2.set({
+                            visible: false
+                        })
+                    }
+                    canvas.requestRenderAll();
+                };
+
+                const updateVolume = function () {
+                    progressVolume.set('height', (video1.getElement().volume / 1) * cProgressVolume.height);
+                    canvas.requestRenderAll();
+                };
+
+                const updatePlayButton = function () {
+                    if (video1.getElement().paused || video1.getElement().ended) {
+                        trg.set({
+                            visible: true
+                        })
+                        rectPause1.set({
+                            visible: false
+                        })
+                        rectPause2.set({
+                            visible: false
+                        })
+                    } else {
+                        trg.set({
+                            visible: false
+                        })
+                        rectPause1.set({
+                            visible: true
+                        })
+                        rectPause2.set({
+                            visible: true
+                        })
+                    }
+                    canvas.requestRenderAll();
+                }
+
+                const updateControls = function () {
+                    canvas.requestRenderAll();
+                };
+
+
+                group.on({
+                    'mouseover': function () {
+                        canvas.requestRenderAll();
+                    }
+                    , 'mouseout': function () {
+                        canvas.requestRenderAll();
+                    }
+                });
+
+                group.videoStatus = function (_status) {
+                    group.status = _status;
+                    updateControls();
+                    video1.getElement().currentTime = group.status.pos;
+                    updateProgress();
+                }
+
+                group.videoSetVolumn = function (volume) {
+                    updateControls();
+                    video1.getElement().volume = volume;
+                    updateVolume();
+                }
+
+                canvas.add(group);
+                video1.getElement().play();
+                setTimeout(() => {
+                    video1.getElement().pause();
+                }, 200)
                 fabric.util.requestAnimFrame(function render() {
+                    updateTimeText();
+                    updateProgress();
+                    updateVolume();
+                    updatePlayButton();
                     canvas.renderAll();
                     fabric.util.requestAnimFrame(render);
                 });
             }, false);
+
+            function _sendStatus(g, _paused, _pos) {
+                g.status.paused = _paused;
+                g.status.pos = _pos;
+                g.videoStatus(g.status);
+            }
+
+            function _setVolume(g, _volume) {
+                if (_volume) {
+                    g.videoSetVolumn(parseFloat(_volume));
+                }
+            }
         }
     }
 
@@ -655,6 +1071,447 @@ class SketchField extends PureComponent {
                 if (_volume) {
                     console.log( parseFloat(_volume));
                     g.videoSetVolumn(parseFloat(_volume));
+                }
+            }
+
+        }
+    }
+
+    getAudioElement = (url:string) => {
+        var audioListE = document.getElementById('audioRender');
+        var audioE = document.createElement('audio');
+        var audioListECount = audioListE.childElementCount + 1;
+
+        audioE.setAttribute("id", "audio" + audioListECount);
+        audioE.setAttribute("class", "videoCanvas");
+        audioE.muted = true;
+        var source = document.createElement('source');
+        source.src = url;
+        source.type = 'audio/mpeg';
+
+        audioE.appendChild(source);
+        audioListE.appendChild(audioE);
+        return audioE;
+    }
+
+    addAudio = (url:string, top: number, left: number) => {
+        if (url) {
+            const opts = {
+                subTargetCheck: true
+                , objectCaching: false
+                , selectable: true
+                , status: {paused: true}
+                , typeObject: 'audioGroup',
+                top: top ? top : 500,
+                left: left ? left : 300,
+                originX: 'center',
+                originY: 'center',
+                // width:500,
+                // height:500
+            };
+
+            // if (width && height) {
+            //     opts.width = width;
+            //     opts.height = height;
+            // }
+
+            const rad = 20, mainColor = '#ba2020';
+            let canvas = this._fc;
+            var audioE = this.getAudioElement(url);
+
+            let audio1 = new fabric.Image(audioE, {
+                left: 200,
+                top: 200,
+                angle: 0,
+                originX: 'center',
+                originY: 'center',
+                objectCaching: false,
+                objectType: 'audio'
+            });
+
+            audio1.set('audio_src', url);
+
+            audioE.addEventListener('loadedmetadata', function (e) {
+                audio1.set({
+                    width: this.audioWidth,
+                    height: this.audioHeight
+                })
+                const group = new fabric.Group([audio1], opts);
+                let paused = true;
+
+                let rad = 20;
+
+                //controll audio display
+                const boxControlaudio = new fabric.Rect({
+                    // left:-227,
+                    // top:this.audioHeight - 40,
+                    left: group.left,
+                    top: group.top + this.audioHeight / 2 + 3,
+                    width: this.audioWidth,
+                    height: 60,
+                    fill: '#1a1a1a',
+                    propertiesName: 'controlaudio',
+                    originX: 'center',
+                    originY: 'center',
+                });
+
+                let trg = new fabric.Triangle({
+                    left: group.left + 2.7 * rad
+                    , top: group.top + group.height - 2.5 * rad
+                    , visible: paused
+                    , angle: 90
+                    , width: rad
+                    , height: rad
+                    , stroke: mainColor
+                    , fill: mainColor
+                });
+                let rectPause1 = new fabric.Rect({
+                    left: group.left + 1.6 * rad
+                    , top: group.top + group.height - 2.5 * rad
+                    , visible: !paused
+                    , width: rad / 3
+                    , height: rad
+                    , stroke: mainColor
+                    , fill: mainColor
+                });
+                let rectPause2 = new fabric.Rect({
+                    left: group.left + 2.1 * rad
+                    , top: group.top + group.height - 2.5 * rad
+                    , visible: !paused
+                    , width: rad / 3
+                    , height: rad
+                    , stroke: mainColor
+                    , fill: mainColor
+                });
+
+                let playButton = new fabric.Group([
+                        new fabric.Circle({
+                            left: group.left + rad
+                            , top: group.top + group.height - 3 * rad
+                            , radius: rad
+                            , stroke: mainColor
+                            , strokeWidth: 2
+                            , fill: null
+                        })
+                        , trg, rectPause1, rectPause2]
+                    , {
+                        objectCaching: false,
+                        originX: 'center',
+                        originY: 'center',
+                        left: group.left - this.audioWidth / 2 + 40,
+                        top: group.top + this.audioHeight / 2 + 3,
+                    });
+                // console.log(group.left,this.audioWidth);
+                //
+                // fabric.Image.fromURL('https://placehold.it/100x100', function(img) {
+                //     group.addWithUpdate(img);
+                //     group.setCoords();
+                //     canvas.setActiveObject(group);
+                //     canvas.renderAll();
+                // });
+
+                // let oImgFullScreen = new Image();
+                // oImgFullScreen.src = VolumeIcon;
+                // // oImgFullScreen.setAttribute('src', VolumeIcon);
+                //
+                // let rectButtonFullScreen = new fabric.Image(oImgFullScreen, {
+                //     left: group.left + this.audioWidth / 2 - 40,
+                //     top: group.top + this.audioHeight / 2 - 10
+                //     , visible: true
+                //     , stroke: mainColor
+                //     , fill: mainColor
+                //     , rx: 5
+                //     , ry: 5
+                // });
+
+                let rectButtonFullScreen = new fabric.Rect({
+                    left: group.left + this.audioWidth / 2 - 40,
+                    top: group.top + this.audioHeight / 2 - 10
+                    , visible: true
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    , width: 30
+                    , height: 30
+                });
+
+                let rectButtonVolume = new fabric.Rect({
+                    left: group.left - this.audioWidth / 2 + 70,
+                    top: group.top + this.audioHeight / 2 - 10
+                    , visible: true
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    , width: 25
+                    , height: 25
+                });
+
+                const progress = new fabric.Rect({
+                    left: group.left - this.audioWidth / 2 + 120,
+                    top: group.top + this.audioHeight / 2
+                    , visible: true
+                    , width: 0
+                    , height: rad / 2
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                });
+
+                const cProgress = new fabric.Rect({
+                    left: group.left - this.audioWidth / 2 + 120,
+                    top: group.top + this.audioHeight / 2
+                    , visible: true
+                    , width: this.audioWidth - 300
+                    , height: rad / 2
+                    , stroke: mainColor
+                    , fill: null
+                    , rx: 5
+                    , ry: 5
+                });
+
+                var timeShow = new fabric.Text('00:00', {
+                    left: group.left + this.audioWidth / 2 - 120,
+                    top: group.top + this.audioHeight / 2 - 5
+                    , visible: true
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    , fontSize: 16
+                });
+
+                const progressVolume = new fabric.Rect({
+                    left: group.left - this.audioWidth / 2 + 78,
+                    top: group.top + this.audioHeight / 2 - 10
+                    , visible: false
+                    , width: 0
+                    , height: 9
+                    , stroke: mainColor
+                    , fill: mainColor
+                    , rx: 5
+                    , ry: 5
+                    ,angle:-90
+                });
+
+                const cProgressVolume = new fabric.Rect({
+                    left: group.left - this.audioWidth / 2 + 78,
+                    top: group.top + this.audioHeight / 2 - 10
+                    , visible: false
+                    , width: 100
+                    , height: 9
+                    , stroke: mainColor
+                    , fill: null
+                    , rx: 5
+                    , ry: 5
+                    ,angle:-90
+                });
+
+                group.addWithUpdate(boxControlaudio);
+                group.addWithUpdate(playButton);
+                group.addWithUpdate(rectButtonFullScreen);
+                group.addWithUpdate(rectButtonVolume);
+                group.addWithUpdate(progress);
+                group.addWithUpdate(cProgress);
+                group.addWithUpdate(timeShow);
+                group.addWithUpdate(progressVolume);
+                group.addWithUpdate(cProgressVolume);
+
+                const updateTimeText = () => {
+                    let totalSeconds = audio1.getElement().currentTime;
+
+                    let hours = Math.floor(totalSeconds / 3600);
+                    totalSeconds %= 3600;
+                    let minutes = Math.floor(totalSeconds / 60);
+                    let seconds = totalSeconds % 60;
+
+                    let timeString = convertTimeaudio(hours) + ':' + convertTimeaudio(minutes) + ':' + convertTimeaudio(Math.floor(seconds))
+                    timeShow.set({
+                        text: timeString
+                    })
+                }
+
+                const convertTimeaudio = (time: any) => {
+                    return time < 10 ? '0' + time.toString() : time;
+                }
+
+                //action audio
+
+                boxControlaudio.on({
+                    'mousemove': function (evt) {
+                        progressVolume.set({
+                            visible:false
+                        });
+
+                        cProgressVolume.set({
+                            visible:false
+                        });
+                    }
+                })
+
+                playButton.on({
+                    'mousedown': function (evt) {
+                        let elem = audio1.getElement();
+                        if (elem.paused || elem.ended) {
+                            elem.play();
+                            trg.set({
+                                visible: false
+                            })
+                            rectPause1.set({
+                                visible: true
+                            })
+                            rectPause2.set({
+                                visible: true
+                            })
+                        } else {
+                            elem.pause();
+                            trg.set({
+                                visible: true
+                            })
+                            rectPause1.set({
+                                visible: false
+                            })
+                            rectPause2.set({
+                                visible: false
+                            })
+                        }
+                        canvas.requestRenderAll();
+                    }
+                });
+
+                rectButtonVolume.on({
+                    'mousedown': function (evt) {
+                        let element = audio1.getElement();
+                        element.muted = !element.muted;
+                    },
+                    'mousemove': function (evt) {
+                        progressVolume.set({
+                            visible:true
+                        })
+                        cProgressVolume.set({
+                            visible:true
+                        })
+                    },
+                    'mouseout': function (evt) {
+
+                    }
+                })
+
+
+                cProgress.on({
+                    'mousedown': function (evt) {
+                        const _ptr = canvas.getPointer(evt.e, true) // _ptr is position click
+                            , ptr = canvas._normalizePointer(group, _ptr)
+                            , l = ptr.x + group.width /2 - 120 ;
+                        _sendStatus(group, group.status.paused, l * audio1.getElement().duration / cProgress.width)
+                    }
+                });
+
+                cProgressVolume.on({
+                    'mousedown': function (evt) {
+                        const _ptr = canvas.getPointer(evt.e, true) // _ptr is position click
+                            , ptr = canvas._normalizePointer(group, _ptr)
+                            , l = ((ptr.y - 100) / 100).toFixed(1) ;
+                        _setVolume(group, l )
+                    },
+                    'mouseout': function (evt) {
+                        progressVolume.set({
+                            visible:false
+                        });
+
+                        cProgressVolume.set({
+                            visible:false
+                        });
+                    }
+                });
+
+                rectButtonFullScreen.on({
+                    'mousedown': function (evt) {
+                        let elem = audio1.getElement();
+                        if (document.fullscreenEnabled) {
+                            elem.requestFullscreen();
+                        }
+                    }
+                });
+
+                const updateProgress = function () {
+                    // console.log(audio1.getElement().currentTime);
+                    // console.log(audio1.getElement().duration)
+                    // console.log(cProgress.width, 'processWidth');
+                    // console.log((audio1.getElement().currentTime / audio1.getElement().duration) * cProgress.width)
+
+                    progress.set('width', (audio1.getElement().currentTime / audio1.getElement().duration) * cProgress.width);
+                    if (audio1.getElement().currentTime === audio1.getElement().duration) {
+                        audio1.getElement().pause();
+                        trg.set({
+                            visible: true
+                        })
+                        rectPause1.set({
+                            visible: false
+                        })
+                        rectPause2.set({
+                            visible: false
+                        })
+                    }
+                    canvas.requestRenderAll();
+                };
+
+                const updateVolume = function () {
+                    progressVolume.set('width', (audio1.getElement().volume / 1) * cProgressVolume.width);
+                    canvas.requestRenderAll();
+                };
+
+                const updateControls = function () {
+                    canvas.requestRenderAll();
+                };
+
+
+                group.on({
+                    'mouseover': function () {
+                        canvas.requestRenderAll();
+                    }
+                    , 'mouseout': function () {
+                        canvas.requestRenderAll();
+                    }
+                });
+
+                group.audioStatus = function (_status) {
+                    group.status = _status;
+                    updateControls();
+                    audio1.getElement().currentTime = group.status.pos;
+                    updateProgress();
+                }
+
+                group.audioSetVolumn = function (volume) {
+                    updateControls();
+                    audio1.getElement().volume = 1 - volume;
+                    updateVolume();
+                }
+
+                canvas.add(group);
+                audio1.getElement().pause();
+                fabric.util.requestAnimFrame(function render() {
+                    updateTimeText();
+                    updateProgress();
+                    updateVolume();
+                    canvas.renderAll();
+                    fabric.util.requestAnimFrame(render);
+                });
+            }, false);
+
+            function _sendStatus(g, _paused, _pos) {
+                console.log(g,_paused, _pos);
+                g.status.paused = _paused;
+                g.status.pos = _pos;
+                g.audioStatus(g.status);
+            }
+
+            function _setVolume(g, _volume) {
+                if (_volume) {
+                    console.log( parseFloat(_volume));
+                    g.audioSetVolumn(parseFloat(_volume));
                 }
             }
 
@@ -1375,6 +2232,9 @@ class SketchField extends PureComponent {
                     </div>
                 </div>
                 <div id={'videoRender'}>
+
+                </div>
+                <div id={'audioRender'}>
 
                 </div>
             </div>
