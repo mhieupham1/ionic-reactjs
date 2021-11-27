@@ -1,5 +1,4 @@
 import FabricCanvasTool from "../fabrictool";
-import '../eraser_brush';
 
 const fabric = require('fabric').fabric;
 

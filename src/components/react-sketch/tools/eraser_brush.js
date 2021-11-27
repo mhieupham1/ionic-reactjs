@@ -392,12 +392,14 @@ const fabric = require('fabric').fabric;
             prepareCollectionTraversal: function (collection) {
                 var _this = this;
                 collection.forEachObject(function (obj) {
-                    if (obj.forEachObject) {
-                        _this.prepareCollectionTraversal(obj);
-                    }
-                    else {
-                        if (obj.erasable) {
-                            _this.hideObject(obj);
+                    if (obj.typeObject !== 'videoGroup'){
+                        if (obj.forEachObject) {
+                            _this.prepareCollectionTraversal(obj);
+                        }
+                        else {
+                            if (obj.erasable) {
+                                _this.hideObject(obj);
+                            }
                         }
                     }
                 });
@@ -483,12 +485,27 @@ const fabric = require('fabric').fabric;
              *    This is important for cases such as overlapping objects, the background object erasable and the foreground object not erasable.
              * 2. Render the brush
              */
+
+            getObjectWithOutTypeObjectName: function (name) {
+                let canvas = this.canvas;
+                let objectList = [],
+                    objects = canvas.getObjects();
+
+                for (let i = 0; i < objects.length; i++) {
+                    if (objects[i].typeObject !== name) {
+                        objectList.push(objects[i]);
+                    }
+                }
+
+                return objectList;
+            },
+
             renderTopLayer: function () {
                 var canvas = this.canvas;
                 this._drawOverlayOnTop = this.prepareCanvasForLayer('top');
                 canvas.renderCanvas(
                     canvas.contextTop,
-                    canvas.getObjects()
+                    this.getObjectWithOutTypeObjectName('videoGroup')
                 );
                 this.callSuper('_render');
                 this.restoreCanvasFromLayer('top');
